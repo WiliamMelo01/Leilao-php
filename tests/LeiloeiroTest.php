@@ -17,7 +17,7 @@ class LeiloeiroTest extends TestCase {
 
         $leiloeiro->leiloar("Roberto", "Iphone 18", 19000);
 
-        $this->expectOutputString("Roberto fez um lance de R$19.000,00 no produto Iphone 18");
+        $this->expectOutputString("  Roberto fez um lance de R$19.000,00 no produto Iphone 18.");
     }
 
 }

@@ -33,11 +33,46 @@ class LeilaoTest extends TestCase
         $lance = new Lance($leilao, $usuario, 19000);
 
         $leilao->abrir();
+        $leilao->adicionarUsuario($usuario);
         $leilao->fazerLance($lance);
 
         $this->assertCount(1, $leilao->getLances());
-        $this->expectOutputString("João fez um lance de R$19.000,00 no produto Iphone 18");
+        $this->expectOutputString("  João fez um lance de R$19.000,00 no produto Iphone 18.");
+    }
 
+    public function testFazerLanceSemParticiparDoLeilao()
+    {
+        $produto = new Produto("Iphone 18", 18000, "O melhor celular do mundo.", "Apple");
+        $leiloeiro = new Leiloeiro("Muçarelo");
+        $leilao = new Leilao($produto, $leiloeiro);
+        $usuario = new Usuario("João");
+        $lance = new Lance($leilao, $usuario, 19000);
+
+        $leilao->abrir();
+        try {
+            $leilao->fazerLance($lance);
+            $this->fail("Para fazer um lance voce precisa fazer parte do leilao.");
+        } catch (\Throwable $err) {
+            $this->assertEquals("Para fazer um lance voce precisa fazer parte do leilao.", $err->getMessage());
+        }
+        
+    }
+
+    public function testFazerLanceEmLeilaoFechado()
+    {
+        $produto = new Produto("Iphone 18", 18000, "O melhor celular do mundo.", "Apple");
+        $leiloeiro = new Leiloeiro("Muçarelo");
+        $leilao = new Leilao($produto, $leiloeiro);
+        $usuario = new Usuario("João");
+        $lance = new Lance($leilao, $usuario, 19000);
+
+        try {
+            $leilao->fazerLance($lance);
+            $this->fail("Você só pode fazer um lance em um leilao aberto");
+        } catch (\Throwable $err) {
+            $this->assertEquals("Você só pode fazer um lance em um leilao aberto", $err->getMessage());
+        }
+        
     }
 
     public function testeAbrir()
@@ -178,6 +213,92 @@ class LeilaoTest extends TestCase
         $this->assertEquals($lance3, $leilao->getMaioresLances()[0]);
         $this->assertEquals($lance2, $leilao->getMaioresLances()[1]);
         $this->assertEquals($lance1, $leilao->getMaioresLances()[2]);
+    }
+
+    public function testGetMaioresLancesComMenosDeQuatroLances()
+    {
+
+        $produto = new Produto("Iphone 18", 18000, "O melhor celular do mundo.", "Apple");
+        $leiloeiro = new Leiloeiro("Muçarelo");
+        $usuario1 = new Usuario("Carlos");
+        $usuario2 = new Usuario("Marcos");
+        $leilao = new Leilao($produto, $leiloeiro);
+
+        $leilao->adicionarUsuario($usuario1);
+        $leilao->adicionarUsuario($usuario2);
+
+        $lance1 = new Lance($leilao, $usuario1, 19000);
+        $lance2 = new Lance($leilao, $usuario2, 20000);
+
+        $leilao->abrir();
+
+        $leilao->fazerLance($lance1);
+        $leilao->fazerLance($lance2);
+
+        $leilao->encerrar();
+
+        $this->assertCount(2, $leilao->getMaioresLances());
+        $this->assertEquals($lance2, $leilao->getMaioresLances()[0]);
+        $this->assertEquals($lance1, $leilao->getMaioresLances()[1]);
+    }
+
+    public function testGetMaioresLancesDeLeilaoNaoFinalizado()
+    {
+
+        $produto = new Produto("Iphone 18", 18000, "O melhor celular do mundo.", "Apple");
+        $leiloeiro = new Leiloeiro("Muçarelo");
+        $usuario1 = new Usuario("Carlos");
+        $leilao = new Leilao($produto, $leiloeiro);
+
+        $leilao->adicionarUsuario($usuario1);
+
+        $lance1 = new Lance($leilao, $usuario1, 19000);
+
+        $leilao->abrir();
+
+        $leilao->fazerLance($lance1);
+
+        try {
+            $leilao->getMaioresLances();
+            $this->fail("Você só pode obter os maiores lances de um leilão encerrado.");
+        } catch (\Throwable $err) {
+            $this->assertEquals("Você só pode obter os maiores lances de um leilão encerrado.", $err->getMessage());
+        }
+        
+    }
+
+    public function testGetMediaLances(){
+        $produto = new Produto("Iphone 18", 18000, "O melhor celular do mundo.", "Apple");
+        $leiloeiro = new Leiloeiro("Muçarelo");
+        $usuario1 = new Usuario("Carlos");
+        $usuario2 = new Usuario("Marcos");
+        $leilao = new Leilao($produto, $leiloeiro);
+
+        $leilao->adicionarUsuario($usuario1);
+        $leilao->adicionarUsuario($usuario2);
+
+        $lance1 = new Lance($leilao, $usuario1, 19000);
+        $lance2 = new Lance($leilao, $usuario2, 20000);
+
+        $leilao->abrir();
+
+        $leilao->fazerLance($lance1);
+        $leilao->fazerLance($lance2);
+
+        $this->assertEquals('19.500,00', $leilao->getMediaLances());
+    }
+
+    public function testGetMediaLancesSemLances(){
+        $produto = new Produto("Iphone 18", 18000, "O melhor celular do mundo.", "Apple");
+        $leiloeiro = new Leiloeiro("Muçarelo");
+        $leilao = new Leilao($produto, $leiloeiro);
+
+        try {
+            $leilao->getMediaLances();
+            $this->fail("Você precisa ter ao menos um lance para calcular a media.");
+        } catch (\Throwable $th) {
+            $this->assertEquals('Você precisa ter ao menos um lance para calcular a media.',$th->getMessage());
+        }
 
     }
 

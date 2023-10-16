@@ -27,11 +27,12 @@ class UsuarioTest extends TestCase
         $leiloeiro1 = new Leiloeiro("Carlos");
         $leilao1 = new Leilao($produto1, $leiloeiro1);
         $leilao1->abrir();
+        $leilao1->adicionarUsuario($usuario1);
         $usuario1->fazerLance($leilao1, 19000);
 
         $this->assertCount(1, $usuario1->getLances());
         $this->assertCount(1, $leilao1->getLances());
-        $this->expectOutputString("João fez um lance de R$19.000,00 no produto Iphone 18");
+        $this->expectOutputString("  João fez um lance de R$19.000,00 no produto Iphone 18.");
     }
     public function testFazerLanceComValorABaixoDoProduto()
     {

@@ -15,7 +15,7 @@ class Leiloeiro
 
     public function leiloar(string $nomeUsuario, string $nomeProduto, float $valor)
     {
-        echo ($nomeUsuario . " fez um lance de R$" . number_format($valor, 2, ",", ".") . " no produto " . $nomeProduto);
+        echo ("  ".$nomeUsuario . " fez um lance de R$" . number_format($valor, 2, ",", ".") . " no produto " . $nomeProduto . ".");
     }
 
     public function getId()

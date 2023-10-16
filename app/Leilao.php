@@ -78,9 +78,21 @@ class Leilao
     {
 
         if ($this->status === "aberto") {
-            array_push($this->lances, $lance);
-            $this->anunciarLance($lance);
-            return;
+
+            $usuarioEncontrado = null;
+            foreach ($this->usuarios as $usuario) {
+                if ($usuario->getId() == $lance->getUsuario()->getId()) {
+                    $usuarioEncontrado = $usuario;
+                }
+            }
+
+            if ($usuarioEncontrado != null) {
+                array_push($this->lances, $lance);
+                $this->anunciarLance($lance);
+                return;
+            }
+
+            throw new \Exception("Para fazer um lance voce precisa fazer parte do leilao.");
         }
 
         throw new \Exception("Você só pode fazer um lance em um leilao aberto");
@@ -92,19 +104,37 @@ class Leilao
         $this->getLeiloeiro()->leiloar($lance->getUsuario()->getNome(), $lance->getLeilao()->getProduto()->getNome(), $lance->getValor());
     }
 
-    public function getMaioresLances(int $quantidade = 3)
+    public function getMaioresLances()
     {
         if ($this->status === "encerrado") {
             // Ordena os lances em ordem decrescente com base no valor
             usort($this->lances, function ($a, $b) {
                 return $b->getValor() - $a->getValor();
             });
-
-            // Retorna os $quantidade maiores lances
-            return array_slice($this->lances, 0, $quantidade);
+            //Se ter 3 ou menos lances retorna todos eles em ordem crescente
+            if (count($this->lances) <= 3) {
+                return $this->lances;
+            }
+            // Retorna os 3 maiores lances
+            return array_slice($this->lances, 0, 3);
         }
 
         throw new \Exception("Você só pode obter os maiores lances de um leilão encerrado.");
+    }
+
+    public function getMediaLances()
+    {
+        if (count($this->lances) > 0) {
+            $qtdeLances = count($this->lances);
+            $valorTotal = 0;
+            foreach($this->lances as $lance){
+                $valorTotal += $lance->getValor();
+            }
+            return number_format($valorTotal / $qtdeLances, 2, ",", ".");
+        }
+
+        throw new \Exception("Você precisa ter ao menos um lance para calcular a media.");
+
     }
 
     public function getId(): string
